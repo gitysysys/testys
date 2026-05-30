@@ -3,6 +3,8 @@
   "rewrites": [
     { "source": "/", "destination": "/api" },
     { "source": "/resolve", "destination": "/api" },
-    { "source": "/dns", "destination": "/api" }
+    { "source": "/dns", "destination": "/api" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/api/admin-config", "destination": "/api/admin-config" }
   ]
 }

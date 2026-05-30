@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>演示控制台 · 动态跳转目标配置</title>
+  <link rel="stylesheet" href="/admin/style.css">
+</head>
+<body>
+  <main class="layout">
+    <section class="banner">
+      <strong>⚠ 教学演示专用</strong>
+      <p>本页面仅用于网络安全课程中演示「静态入口 + 动态解析」行为，请勿用于任何非法用途。</p>
+    </section>
+
+    <section class="card">
+      <p class="badge">Layer 2 · Vercel 动态配置层</p>
+      <h1>跳转目标控制台</h1>
+      <p class="desc">
+        修改此处目标后，GitHub Pages 静态页会通过 JSON API 获取最新域名并执行跳转。
+        无需重新部署 GitHub 页面。
+      </p>
+
+      <div class="grid">
+        <div class="panel">
+          <h2>当前生效目标</h2>
+          <p class="target" id="current-target">加载中…</p>
+          <p class="meta" id="storage-mode"></p>
+          <button class="btn secondary" id="refresh-btn" type="button">刷新状态</button>
+        </div>
+
+        <div class="panel">
+          <h2>修改跳转目标</h2>
+          <label for="target-input">目标域名</label>
+          <input id="target-input" type="text" placeholder="例如：www.baidu.com" autocomplete="off">
+          <label for="password-input">演示口令</label>
+          <input id="password-input" type="password" placeholder="默认：demo-teach" autocomplete="off">
+          <button class="btn" id="save-btn" type="button">保存并生效</button>
+          <p class="hint">默认演示口令为 <code>demo-teach</code>，可在 Vercel 环境变量 <code>DEMO_ADMIN_PASSWORD</code> 中修改。</p>
+        </div>
+      </div>
+
+      <pre class="log" id="log">等待操作…</pre>
+
+      <div class="links">
+        <a href="https://gitysysys.github.io/testys/?debug=1" target="_blank" rel="noopener">GitHub 调试页</a>
+        <a href="https://gitysysys.github.io/testys/" target="_blank" rel="noopener">GitHub 自动跳转页</a>
+        <a href="/" target="_blank" rel="noopener">JSON API</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="/admin/app.js"></script>
+</body>
+</html>

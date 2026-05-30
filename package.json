@@ -2,5 +2,8 @@
   "name": "testys",
   "version": "1.0.0",
   "private": true,
-  "description": "模拟动态解析：访问即返回 JSON 域名映射"
+  "description": "模拟动态解析：访问即返回 JSON 域名映射",
+  "dependencies": {
+    "@vercel/blob": "^0.27.0"
+  }
 }
