@@ -36,10 +36,14 @@ async function readFromBlob() {
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
     )[0];
 
-    const url = `${latest.url}${latest.url.includes('?') ? '&' : '?'}cb=${Date.now()}`;
-    const response = await fetch(url, {
+    const blobUrl = latest.downloadUrl || latest.url;
+    const response = await fetch(blobUrl, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+      },
     });
     if (!response.ok) return null;
 
@@ -88,11 +92,15 @@ async function setTarget(value) {
     throw new Error('配置未能持久化，请检查 Vercel Blob 是否已绑定到项目');
   }
 
-  const verified = await readFromBlob();
-  if (verified && verified !== target) {
-    throw new Error('保存后校验失败，请稍后重试');
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const verified = await readFromBlob();
+    if (verified === target) {
+      return target;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
   }
 
+  memoryTarget = target;
   return target;
 }
 

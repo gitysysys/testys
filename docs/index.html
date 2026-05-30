@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <title>动态解析演示 · 静态入口层</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -83,8 +85,9 @@
           return;
         }
 
-        setStep(4, '正在跳转到 ' + data.test + ' …');
-        setTimeout(() => location.replace(target), 1200);
+        setStep(4, '即将跳转到 ' + data.test + '（' + target + '）');
+        log('即将执行跳转：\n' + target + '\n\n若地址栏不是此域名，请检查是否打开了旧标签页。', data);
+        setTimeout(() => location.replace(target), 2500);
       } catch (error) {
         setStep(2, '请求失败');
         log('错误：' + error.message + '\n\n请确认 Vercel API 已部署且 CORS 已开启。');
