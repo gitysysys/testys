@@ -38,7 +38,7 @@ async function writeToBlob(target) {
 
   const { put } = require('@vercel/blob');
   await put(BLOB_PATH, JSON.stringify({ test: target, updatedAt: new Date().toISOString() }), {
-    access: 'private',
+    access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
