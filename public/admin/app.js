@@ -25,7 +25,7 @@ async function saveTarget() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       test: targetInput.value.trim(),
-      password: passwordInput.value,
+      password: passwordInput.value || 'demo-teach',
     }),
   });
   const data = await response.json();
@@ -33,6 +33,7 @@ async function saveTarget() {
 
   currentTargetEl.textContent = data.test;
   log('保存成功', data);
+  await loadStatus();
 }
 
 document.getElementById('refresh-btn').addEventListener('click', () => {

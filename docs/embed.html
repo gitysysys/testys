@@ -42,7 +42,7 @@
 
     async function run() {
       try {
-        const response = await fetch(API_URL, { cache: 'no-store' });
+        const response = await fetch(API_URL + '?t=' + Date.now(), { cache: 'no-store' });
         const data = await response.json();
         const target = toUrl(data.test);
 

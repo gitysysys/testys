@@ -19,29 +19,50 @@ function normalizeTarget(value) {
   return trimmed.toLowerCase();
 }
 
+async function listConfigBlobs() {
+  const { list } = require('@vercel/blob');
+  const { blobs } = await list({ prefix: BLOB_PATH, limit: 20 });
+  return blobs.filter((blob) => blob.pathname === BLOB_PATH);
+}
+
 async function readFromBlob() {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
 
-  const { head } = require('@vercel/blob');
-  const meta = await head(BLOB_PATH).catch(() => null);
-  if (!meta) return null;
+  try {
+    const blobs = await listConfigBlobs();
+    if (!blobs.length) return null;
 
-  const response = await fetch(meta.url, { cache: 'no-store' });
-  if (!response.ok) return null;
+    const latest = blobs.sort(
+      (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
+    )[0];
 
-  const data = await response.json();
-  return normalizeTarget(data.test) || null;
+    const url = `${latest.url}${latest.url.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    });
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    return normalizeTarget(data.test) || null;
+  } catch {
+    return null;
+  }
 }
 
 async function writeToBlob(target) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return false;
 
-  const { put } = require('@vercel/blob');
+  const { del, put } = require('@vercel/blob');
+  const existing = await listConfigBlobs();
+  await Promise.all(existing.map((blob) => del(blob.url).catch(() => null)));
+
   await put(BLOB_PATH, JSON.stringify({ test: target, updatedAt: new Date().toISOString() }), {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    cacheControlMaxAge: 0,
   });
   return true;
 }
@@ -62,7 +83,16 @@ async function setTarget(value) {
   }
 
   memoryTarget = target;
-  await writeToBlob(target);
+  const persisted = await writeToBlob(target);
+  if (!persisted) {
+    throw new Error('配置未能持久化，请检查 Vercel Blob 是否已绑定到项目');
+  }
+
+  const verified = await readFromBlob();
+  if (verified && verified !== target) {
+    throw new Error('保存后校验失败，请稍后重试');
+  }
+
   return target;
 }
 

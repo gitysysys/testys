@@ -66,7 +66,7 @@
         log('当前入口：GitHub Pages\n下一跳：' + API_URL);
 
         setStep(2, '正在请求 Vercel JSON…');
-        const response = await fetch(API_URL, { cache: 'no-store' });
+        const response = await fetch(API_URL + '?t=' + Date.now(), { cache: 'no-store' });
         if (!response.ok) throw new Error('HTTP ' + response.status);
 
         const data = await response.json();
