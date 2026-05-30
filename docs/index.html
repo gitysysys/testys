@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>动态解析演示 · 静态入口层</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <p class="badge">Layer 1 · GitHub Pages 静态页</p>
+    <h1>动态解析教学演示</h1>
+    <p class="desc">
+      本页托管在 GitHub Pages，仅含静态 HTML/JS。
+      页面加载后会向 Vercel 请求 JSON 配置，再执行跳转。
+    </p>
+
+    <ol class="steps" id="steps">
+      <li data-step="1">等待页面加载…</li>
+      <li data-step="2">向 Vercel 动态解析服务请求配置</li>
+      <li data-step="3">解析 JSON，提取目标域名</li>
+      <li data-step="4">执行跳转</li>
+    </ol>
+
+    <pre class="log" id="log">初始化中…</pre>
+
+    <div class="actions hidden" id="actions">
+      <a class="btn" id="manual-link" href="#" target="_blank" rel="noopener">手动打开目标站点</a>
+      <a class="btn secondary" href="embed.html">查看 iframe 嵌入演示</a>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = 'https://testys-phi.vercel.app/';
+    const debug = new URLSearchParams(location.search).has('debug');
+
+    const stepsEl = document.getElementById('steps');
+    const logEl = document.getElementById('log');
+    const actionsEl = document.getElementById('actions');
+    const manualLink = document.getElementById('manual-link');
+
+    function setStep(n, text) {
+      stepsEl.querySelectorAll('li').forEach((li) => {
+        const step = Number(li.dataset.step);
+        li.classList.toggle('done', step < n);
+        li.classList.toggle('active', step === n);
+      });
+      if (text) {
+        const active = stepsEl.querySelector('[data-step="' + n + '"]');
+        if (active) active.textContent = text;
+      }
+    }
+
+    function log(message, data) {
+      const line = data ? message + '\n' + JSON.stringify(data, null, 2) : message;
+      logEl.textContent = line;
+    }
+
+    function toUrl(value) {
+      return /^https?:\/\//i.test(value) ? value : 'https://' + value;
+    }
+
+    async function run() {
+      try {
+        setStep(1, '页面已加载（静态层）');
+        log('当前入口：GitHub Pages\n下一跳：' + API_URL);
+
+        setStep(2, '正在请求 Vercel JSON…');
+        const response = await fetch(API_URL, { cache: 'no-store' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        const data = await response.json();
+        setStep(3, '已收到配置：' + data.test);
+        log('Vercel 返回 JSON：', data);
+
+        const target = toUrl(data.test);
+        manualLink.href = target;
+        actionsEl.classList.remove('hidden');
+
+        if (debug) {
+          setStep(4, '调试模式：不自动跳转');
+          log('调试模式已开启（URL 加 ?debug=1）\n目标 URL：' + target + '\n\n取消 debug 参数后将自动跳转。');
+          return;
+        }
+
+        setStep(4, '正在跳转到 ' + data.test + ' …');
+        setTimeout(() => location.replace(target), 1200);
+      } catch (error) {
+        setStep(2, '请求失败');
+        log('错误：' + error.message + '\n\n请确认 Vercel API 已部署且 CORS 已开启。');
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>

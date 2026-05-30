@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iframe 嵌入演示 · 静态入口层</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card wide">
+    <p class="badge">Layer 1 · GitHub Pages 静态页</p>
+    <h1>iframe 嵌入演示</h1>
+    <p class="desc">
+      嫌疑人有时尝试用 iframe 嵌入目标站，地址栏仍显示 GitHub 域名。
+      多数大型站点（如百度）会通过 X-Frame-Options 阻止被嵌入。
+    </p>
+
+    <pre class="log" id="log">加载配置中…</pre>
+
+    <div class="frame-wrap hidden" id="frame-wrap">
+      <iframe id="frame" title="embedded target" referrerpolicy="no-referrer"></iframe>
+    </div>
+
+    <p class="note hidden" id="note"></p>
+
+    <div class="actions">
+      <a class="btn secondary" href="index.html">返回跳转演示</a>
+      <a class="btn secondary" href="index.html?debug=1">调试模式（不跳转）</a>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = 'https://testys-phi.vercel.app/';
+    const logEl = document.getElementById('log');
+    const frameWrap = document.getElementById('frame-wrap');
+    const frame = document.getElementById('frame');
+    const noteEl = document.getElementById('note');
+
+    function toUrl(value) {
+      return /^https?:\/\//i.test(value) ? value : 'https://' + value;
+    }
+
+    async function run() {
+      try {
+        const response = await fetch(API_URL, { cache: 'no-store' });
+        const data = await response.json();
+        const target = toUrl(data.test);
+
+        logEl.textContent =
+          '已从 Vercel 获取目标：' + data.test +
+          '\n尝试 iframe 嵌入：' + target;
+
+        frame.src = target;
+        frameWrap.classList.remove('hidden');
+
+        frame.addEventListener('load', () => {
+          noteEl.textContent =
+            'iframe 已加载。若下方为空白，说明目标站禁止被嵌入（常见安全策略）。';
+          noteEl.classList.remove('hidden');
+        });
+
+        frame.addEventListener('error', () => {
+          noteEl.textContent = 'iframe 加载失败，目标站可能禁止嵌入。';
+          noteEl.classList.remove('hidden');
+        });
+      } catch (error) {
+        logEl.textContent = '错误：' + error.message;
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>
